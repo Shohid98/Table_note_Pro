@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101827">
+<meta name="description" content="বাংলা ও English All-in-One Digital Notebook">
+<link rel="manifest" href="./manifest.json">
+<title>My Digital Notebook</title>
+<style>
+:root{--bg:#0b1220;--panel:#121d30;--panel2:#17243a;--text:#edf3ff;--muted:#a7b5ca;--accent:#60a5fa;--line:#2a3a52;--danger:#fb7185}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#0b1220,#101a2b);color:var(--text);font-family:system-ui,-apple-system,"Noto Sans Bengali",sans-serif;min-height:100vh}
+header{padding:22px 16px 16px;max-width:980px;margin:auto}h1{font-size:1.45rem;margin:0 0 5px}p{margin:5px 0;color:var(--muted)}main{max-width:980px;margin:auto;padding:0 12px 40px}.toolbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.toolbar button,.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:11px 12px;border-radius:12px;font-weight:650;cursor:pointer}.primary{background:#2563eb!important;border-color:#3b82f6!important}.danger{color:#fecdd3!important;border-color:#9f4258!important}.layout{display:grid;grid-template-columns:1fr;gap:12px}.panel{background:rgba(18,29,48,.95);border:1px solid var(--line);border-radius:16px;padding:14px}.field{width:100%;background:#0b1424;border:1px solid var(--line);color:var(--text);padding:12px;border-radius:10px;font:inherit;margin:5px 0 10px}.row{display:flex;gap:8px;align-items:center}.row>*{min-width:0;flex:1}label{font-size:.9rem;color:#d2dced}textarea{resize:vertical;min-height:155px}.small{font-size:.82rem;color:var(--muted)}.note{padding:12px;border:1px solid var(--line);border-radius:12px;background:#101a2b;margin-top:8px;cursor:pointer}.note h3{font-size:1rem;margin:0 0 6px;overflow-wrap:anywhere}.note p{font-size:.9rem;white-space:pre-wrap;overflow-wrap:anywhere}.note-meta{font-size:.76rem;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}.empty{text-align:center;padding:22px;color:var(--muted)}.status{font-size:.82rem;color:#a7f3d0;min-height:1.2em}.hidden{display:none!important}footer{max-width:980px;margin:auto;padding:0 16px 28px;color:var(--muted);font-size:.8rem}a{color:#93c5fd}@media(min-width:760px){.layout{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr)}.toolbar{grid-template-columns:repeat(4,1fr)}}
+
+@media print{
+ body{background:#fff!important;color:#111!important;font-family:Arial,"Noto Sans Bengali",sans-serif!important}
+ header,footer,.toolbar,.panel form,#search,#filterCategory,#sortOrder,.note .row,#installBanner,#loginGate{display:none!important}
+ main{max-width:none!important;padding:0!important;visibility:visible!important}
+ .layout{display:block!important}
+ .panel{background:#fff!important;border:0!important;padding:0!important}
+ #listHeading{display:block!important;color:#111!important;font-size:20pt;margin:0 0 12pt}
+ #notesList{display:block!important}
+ .note{break-inside:avoid;background:#fff!important;border:1px solid #bbb!important;color:#111!important;margin:0 0 10pt;padding:10pt}
+ .note h3,.note p,.note-meta{color:#111!important}
+ .note p{white-space:pre-wrap!important}
+}
+</style>
+</head>
+<body>
+
+<style>
+#loginGate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:22px;background:linear-gradient(145deg,#080e1a,#14243c)}
+#loginCard{width:100%;max-width:390px;background:#121d30;border:1px solid #2a3a52;border-radius:20px;padding:24px;box-shadow:0 18px 60px #0008}
+#loginCard h2{margin:0 0 8px;font-size:1.35rem}#loginCard p{color:#a7b5ca;line-height:1.5}
+#loginPassword{width:100%;background:#0b1424;border:1px solid #2a3a52;color:#edf3ff;padding:13px;border-radius:11px;font:inherit;margin:10px 0}
+#loginSubmit{width:100%;border:1px solid #3b82f6;background:#2563eb;color:white;padding:13px;border-radius:11px;font-weight:700;font:inherit}
+#loginError{color:#fda4af;min-height:1.4em;font-size:.9rem}
+body.locked{overflow:hidden}body.locked>header,body.locked>main,body.locked>footer{visibility:hidden}
+</style>
+<div id="loginGate" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+ <div id="loginCard">
+  <div style="font-size:2rem;margin-bottom:8px">🔐</div>
+  <h2 id="loginTitle">Notebook Login</h2>
+  <p>এই নোটবুক খুলতে পাসওয়ার্ড দিন। Enter password to continue.</p>
+  <form id="loginForm">
+   <label for="loginPassword">পাসওয়ার্ড / Password</label>
+   <input id="loginPassword" type="password" inputmode="numeric" autocomplete="current-password" required placeholder="পাসওয়ার্ড লিখুন">
+   <button id="loginSubmit" type="submit">প্রবেশ করুন / Unlock</button>
+   <div id="loginError" aria-live="polite"></div>
+  </form>
+ </div>
+</div>
+<script>
+(function(){
+ const gatePassword='01767062398';
+ const gate=document.getElementById('loginGate');
+ document.body.classList.add('locked');
+ // Require the password each time this page is freshly opened.
+ document.getElementById('loginForm').addEventListener('submit',function(e){
+   e.preventDefault();
+   const entered=document.getElementById('loginPassword').value;
+   if(entered===gatePassword){
+     gate.remove();
+     document.body.classList.remove('locked');
+   }else{
+     document.getElementById('loginError').textContent='ভুল পাসওয়ার্ড। আবার চেষ্টা করুন। / Incorrect password.';
+     document.getElementById('loginPassword').value='';
+     document.getElementById('loginPassword').focus();
+   }
+ });
+})();
+</script>
+
+<header>
+<h1>📘 My Digital Notebook</h1>
+<p id="tagline">আপনার নোট, পরিকল্পনা ও স্মৃতি—এক জায়গায়</p>
+<div class="toolbar">
+<button id="langBtn">বাংলা / English</button>
+<button id="newBtn" class="primary">＋ নতুন নোট</button>
+<button id="exportBtn">⬇ Backup Export</button>
+<button id="importBtn">⬆ Backup Import</button>
+<button id="pdfBtn">📄 PDF ডাউনলোড</button>
+<button id="printBtn">🖨️ Print / প্রিন্ট</button>
+</div>
+<div class="small" id="storageInfo">নোট এই ব্রাউজারের ডিভাইসে সংরক্ষিত হবে। নিয়মিত ব্যাকআপ নিন।</div>
+</header>
+<main>
+<div class="layout">
+<section class="panel">
+<h2 id="editorHeading">নোট লিখুন / সম্পাদনা</h2>
+<form id="noteForm">
+<input id="noteId" type="hidden">
+<label for="title" id="titleLabel">শিরোনাম</label>
+<input class="field" id="title" maxlength="180" required placeholder="যেমন: আজকের পরিকল্পনা">
+<div class="row">
+<div><label for="category" id="categoryLabel">ক্যাটাগরি</label>
+<select class="field" id="category">
+<option value="Personal">Personal / ব্যক্তিগত</option><option value="Work">Work / কাজ</option><option value="Learning">Learning / শেখা</option><option value="Ideas">Ideas / আইডিয়া</option><option value="Finance">Finance / অর্থ</option><option value="Health">Health / স্বাস্থ্য</option><option value="Travel">Travel / ভ্রমণ</option><option value="Other">Other / অন্যান্য</option>
+</select></div>
+<div><label for="noteDate" id="dateLabel">তারিখ</label><input class="field" id="noteDate" type="date" required></div>
+</div>
+<label for="bodyText" id="bodyLabel">বিস্তারিত</label>
+<textarea class="field" id="bodyText" required placeholder="এখানে আপনার নোট লিখুন..."></textarea>
+<div class="row"><button class="btn primary" type="submit" id="saveBtn">নোট সংরক্ষণ</button><button class="btn" type="button" id="clearBtn">ফর্ম খালি করুন</button></div>
+<p class="status" id="status" aria-live="polite"></p>
+</form>
+</section>
+<section class="panel">
+<h2 id="listHeading">আমার নোটসমূহ</h2>
+<input id="search" class="field" placeholder="🔎 নোট খুঁজুন / Search notes">
+<div class="row">
+<select id="filterCategory" class="field" aria-label="Filter category"><option value="">সব ক্যাটাগরি / All categories</option><option>Personal</option><option>Work</option><option>Learning</option><option>Ideas</option><option>Finance</option><option>Health</option><option>Travel</option><option>Other</option></select>
+<select id="sortOrder" class="field" aria-label="Sort"><option value="new">নতুন আগে / Newest first</option><option value="old">পুরোনো আগে / Oldest first</option><option value="az">শিরোনাম / Title A–Z</option></select>
+</div>
+<div id="notesList"></div>
+</section>
+</div>
+</main>
+<footer>
+<p>🔒 গোপনীয়তা: এই প্রাথমিক সংস্করণে নোট শুধু এই ব্রাউজারের local storage-এ থাকে। এটি নিজে থেকে GitHub বা Google Drive-এ আপলোড করে না।</p>
+<p>দীর্ঘমেয়াদি নিরাপত্তার জন্য নিয়মিত <b>Backup Export</b> করে JSON ফাইল Google Drive-এ রাখুন। GitHub repository-তে ব্যক্তিগত নোট আপলোড করবেন না।</p>
+</footer>
+<input id="fileInput" type="file" accept=".json,application/json" class="hidden">
+<script>
+const $=id=>document.getElementById(id);
+const KEY='allInOneNotebook.notes.v1';
+let notes=[]; let english=false;
+try{notes=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(notes))notes=[]}catch(e){notes=[]}
+const today=()=>new Date().toLocaleDateString('en-CA');
+$('noteDate').value=today();
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(notes));$('status').textContent=english?'Saved on this device.':'এই ডিভাইসে সংরক্ষণ হয়েছে।';render()}catch(e){alert(english?'Storage is full. Export a backup and remove some data.':'স্টোরেজ পূর্ণ। ব্যাকআপ নিয়ে কিছু তথ্য মুছুন।')}}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function resetForm(){ $('noteForm').reset();$('noteId').value='';$('noteDate').value=today();$('editorHeading').textContent=english?'Write / Edit note':'নোট লিখুন / সম্পাদনা';$('saveBtn').textContent=english?'Save note':'নোট সংরক্ষণ';}
+function render(){const q=$('search').value.toLowerCase().trim(),cat=$('filterCategory').value;let arr=notes.filter(n=>(!cat||n.category===cat)&&(!q||(n.title+' '+n.body+' '+n.category+' '+n.date).toLowerCase().includes(q)));const sort=$('sortOrder').value;arr.sort((a,b)=>sort==='az'?a.title.localeCompare(b.title):sort==='old'?a.date.localeCompare(b.date):b.date.localeCompare(a.date));const box=$('notesList');if(!arr.length){box.innerHTML='<div class="empty">'+(english?'No notes found. Add your first note.':'কোনো নোট পাওয়া যায়নি। প্রথম নোটটি যোগ করুন।')+'</div>';return}box.innerHTML=arr.map(n=>`<article class="note" data-id="${esc(n.id)}"><h3>${esc(n.title)}</h3><div class="note-meta"><span>📁 ${esc(n.category)}</span><span>📅 ${esc(n.date)}</span><span>↻ ${esc((n.updated||n.created||'').slice(0,10))}</span></div><p>${esc(n.body.length>260?n.body.slice(0,260)+'…':n.body)}</p><div class="row"><button class="btn edit" data-id="${esc(n.id)}">${english?'Edit':'সম্পাদনা'}</button><button class="btn danger delete" data-id="${esc(n.id)}">${english?'Delete':'মুছুন'}</button></div></article>`).join('')}
+$('noteForm').addEventListener('submit',e=>{e.preventDefault();const id=$('noteId').value,now=new Date().toISOString();const old=notes.find(n=>n.id===id);const n={id:id||('n_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)),title:$('title').value.trim(),category:$('category').value,date:$('noteDate').value,body:$('bodyText').value.trim(),created:old?.created||now,updated:now};if(!n.title||!n.body)return;if(old)notes=notes.map(x=>x.id===id?n:x);else notes.unshift(n);persist();resetForm()});
+$('clearBtn').addEventListener('click',resetForm);$('newBtn').addEventListener('click',()=>{resetForm();$('title').focus()});
+$('notesList').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const n=notes.find(x=>x.id===b.dataset.id);if(!n)return;if(b.classList.contains('edit')){$('noteId').value=n.id;$('title').value=n.title;$('category').value=n.category;$('noteDate').value=n.date;$('bodyText').value=n.body;$('editorHeading').textContent=english?'Edit note':'নোট সম্পাদনা';$('saveBtn').textContent=english?'Update note':'নোট আপডেট';window.scrollTo({top:0,behavior:'smooth'})}else if(b.classList.contains('delete')&&confirm(english?'Delete this note?':'এই নোটটি মুছে ফেলবেন?')){notes=notes.filter(x=>x.id!==n.id);persist()}});
+$('search').addEventListener('input',render);$('filterCategory').addEventListener('change',render);$('sortOrder').addEventListener('change',render);
+$('exportBtn').addEventListener('click',()=>{const blob=new Blob([JSON.stringify({app:'All-in-One Notebook',version:1,exportedAt:new Date().toISOString(),notes},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='notebook-backup-'+today()+'.json';a.click();URL.revokeObjectURL(a.href);$('status').textContent=english?'Backup exported. Save it to Google Drive.':'ব্যাকআপ তৈরি হয়েছে। Google Drive-এ রাখুন।'});
+$('importBtn').addEventListener('click',()=>$('fileInput').click());
+$('fileInput').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());const incoming=Array.isArray(data)?data:data.notes;if(!Array.isArray(incoming))throw new Error('bad');if(!confirm(english?'Import and merge notes? Notes with matching IDs will be replaced.':'নোট ইমপোর্ট করবেন? একই ID থাকলে পুরোনো নোট প্রতিস্থাপিত হবে।'))return;const map=new Map(notes.map(n=>[n.id,n]));incoming.forEach(n=>{if(n&&n.id&&n.title)map.set(n.id,n)});notes=[...map.values()];persist()}catch(err){alert(english?'Invalid backup file.':'ব্যাকআপ ফাইলটি সঠিক নয়।')}finally{e.target.value=''}});
+$('langBtn').addEventListener('click',()=>{english=!english;document.documentElement.lang=english?'en':'bn';$('tagline').textContent=english?'Your notes, plans and memories in one place':'আপনার নোট, পরিকল্পনা ও স্মৃতি—এক জায়গায়';$('editorHeading').textContent=english?'Write / Edit note':'নোট লিখুন / সম্পাদনা';$('titleLabel').textContent=english?'Title':'শিরোনাম';$('categoryLabel').textContent=english?'Category':'ক্যাটাগরি';$('dateLabel').textContent=english?'Date':'তারিখ';$('bodyLabel').textContent=english?'Details':'বিস্তারিত';$('listHeading').textContent=english?'My notes':'আমার নোটসমূহ';$('saveBtn').textContent=english?'Save note':'নোট সংরক্ষণ';$('clearBtn').textContent=english?'Clear form':'ফর্ম খালি করুন';$('search').placeholder=english?'🔎 Search notes':'🔎 নোট খুঁজুন / Search notes';$('storageInfo').textContent=english?'Notes are stored in this browser on this device. Export backups regularly.':'নোট এই ব্রাউজারের ডিভাইসে সংরক্ষিত হবে। নিয়মিত ব্যাকআপ নিন।';render()});
+
+function getVisibleNotesForExport(){
+ const q=$('search').value.toLowerCase().trim(),cat=$('filterCategory').value;
+ let arr=notes.filter(n=>(!cat||n.category===cat)&&(!q||(n.title+' '+n.body+' '+n.category+' '+n.date).toLowerCase().includes(q)));
+ const sort=$('sortOrder').value;arr.sort((a,b)=>sort==='az'?a.title.localeCompare(b.title):sort==='old'?a.date.localeCompare(b.date):b.date.localeCompare(a.date));
+ return arr;
+}
+function openPrintableNotes(){
+ const arr=getVisibleNotesForExport();
+ if(!arr.length){alert(english?'No notes to export or print.':'ডাউনলোড বা প্রিন্ট করার মতো কোনো নোট নেই।');return;}
+ const win=window.open('','_blank');
+ if(!win){alert(english?'Allow pop-ups for PDF/print, or use the browser menu.':'PDF/প্রিন্টের জন্য পপ-আপ অনুমতি দিন, অথবা ব্রাউজারের মেনু ব্যবহার করুন।');return;}
+ const escHtml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const title=english?'My Digital Notebook':'আমার ডিজিটাল নোটবুক';
+ win.document.write('<!doctype html><html lang="'+(english?'en':'bn')+'"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+escHtml(title)+'</title><style>body{font-family:Arial,"Noto Sans Bengali",sans-serif;color:#111;margin:24px;line-height:1.55}h1{font-size:22px;border-bottom:2px solid #333;padding-bottom:8px}.entry{border-bottom:1px solid #bbb;padding:12px 0;break-inside:avoid}.meta{font-size:12px;color:#444;margin:4px 0 8px}.body{white-space:pre-wrap;overflow-wrap:anywhere}@media print{button{display:none}}</style></head><body><h1>'+escHtml(title)+'</h1><p>'+escHtml((english?'Exported on: ':'ডাউনলোড/প্রিন্টের তারিখ: ')+new Date().toLocaleString())+'</p>'+arr.map(n=>'<section class="entry"><h2>'+escHtml(n.title)+'</h2><div class="meta">'+escHtml(n.category+' • '+n.date)+'</div><div class="body">'+escHtml(n.body)+'</div></section>').join('')+'<p><button onclick="window.print()">'+(english?'Print / Save as PDF':'প্রিন্ট / PDF হিসেবে সংরক্ষণ')+'</button></p></body></html>');
+ win.document.close();
+ setTimeout(()=>{try{win.focus();win.print()}catch(e){}},500);
+}
+$('pdfBtn').addEventListener('click',openPrintableNotes);
+$('printBtn').addEventListener('click',openPrintableNotes);
+if('serviceWorker' in navigator && location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+render();
+</script>
+</body></html>
